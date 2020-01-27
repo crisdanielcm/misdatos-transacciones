@@ -1,4 +1,5 @@
 const Transaction = require('../models/transaction.model');
+const excel = require('node-excel-export');
 
 exports.create = (req, res) => {
     if (!req.body) {
@@ -55,4 +56,82 @@ exports.inactiveTransaction = (req, res) => {
             }
         }
     })
+};
+
+//==========================
+//Reporte excel
+//==========================
+
+exports.exportTransactionsToExcel = (req, res) => {
+    const styles = {
+        headerDark: {
+            fill: {
+                fgColor: {
+                    rgb: 'FF000000'
+                }
+            },
+            font: {
+                color: {
+                    rgb: 'FFFFFFFF'
+                },
+                sz: 14,
+                bold: true,
+                underline: true
+            }
+        },
+    };
+
+    //Here you specify the export structure
+    const specification = {
+        transaction_id: {
+            displayName: 'ID DE TRANSACCIÓN',
+            headerStyle: styles.headerDark,
+            width: 100
+        },
+        value: {
+            displayName: 'VALOR',
+            headerStyle: styles.headerDark,
+            width: 120
+        },
+        points: {
+            displayName: 'PUNTOS',
+            headerStyle: styles.headerDark,
+            width: 120
+        },
+        status: {
+            displayName: 'ESTADO',
+            headerStyle: styles.headerDark,
+            width: 80
+        },
+        user_id: {
+            displayName: 'ID DEL USUARIO',
+            headerStyle: styles.headerDark,
+            width: 200
+        },
+        created_date: {
+            displayName: 'FECHA DE CREACIÓN',
+            headerStyle: styles.headerDark,
+            width: 120
+        },
+
+    }
+
+    Transaction.getAll((err, data) => {
+        if (err)
+            res.status(500).json({
+                message: err.message || "Ocurrio un error mientras se consultaban las transacciones."
+            });
+        else {
+            const report = excel.buildExport(
+                [{
+                    name: 'Report',
+                    specification: specification,
+                    data: data
+                }]
+            );
+
+            res.attachment('transactions.xlsx');
+            return res.json(report);
+        }
+    });
 };

@@ -45,4 +45,18 @@ Transaction.findById = (transaction_id, result) => {
     });
 };
 
+Transaction.getAll = result => {
+    sql.query('SELECT * FROM transactions', (err, res) => {
+        if (err) {
+            result(err, null);
+            return;
+        }
+        if (res.length > 0) {
+            result(null, res);
+            return;
+        }
+        result(null, res);
+    });
+};
+
 module.exports = Transaction;
